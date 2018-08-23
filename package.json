@@ -1,6 +1,6 @@
 {
   "name": "@jaredlunde/radar-addons",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Extra components for react-radar",
   "main": "cjs/index.js",
   "module": "es/index.js",
