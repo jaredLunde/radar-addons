@@ -13,11 +13,6 @@ class PlainClick_ extends React.PureComponent {
       commitAction,
       status,
       confirm,
-      // router
-      history,
-      location,
-      match,
-      staticContext,
       // props
       nodeType = 'button',
       childNodeType,
@@ -44,10 +39,10 @@ class PlainClick_ extends React.PureComponent {
 }
 
 
-function PlainClick (props) {
+export function PlainClick (props) {
   // composeAction takes a function, hence this wrapper
   return React.createElement(PlainClick_, props)
 }
 
 
-export const ActionClick = composeAction('ActionClick', PlainClick)
+export default composeAction('ActionClick', PlainClick)
