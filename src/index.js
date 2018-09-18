@@ -1,5 +1,2 @@
-export Action, {composeAction} from './Action'
-export ActionClick, {PlainClick} from './ActionClick'
-export ActionForm from './ActionForm'
-export RadarEndpoint from './RadarEndpoint'
-export RadarPortal from './RadarPortal'
+export RadarClick from './RadarClick'
+export RadarForm from './RadarForm'

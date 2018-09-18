@@ -1,17 +1,17 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import {Updater} from 'react-radar'
 import {callIfExists} from '@render-props/utils'
-import Action, {composeAction} from './Action'
 
 
-class PlainClick_ extends React.PureComponent {
-  static displayName = 'PlainClick'
+class Click extends React.PureComponent {
+  static displayName = 'Click'
 
   render () {
     const {
       // action
-      commitAction,
-      status,
+      state,
+      radar,
       confirm,
       // props
       nodeType = 'button',
@@ -25,7 +25,7 @@ class PlainClick_ extends React.PureComponent {
       callIfExists(onClick, e)
 
       if (!confirm || confirm() === true) {
-        commitAction(e)
+        radar.commit()
       }
     }
 
@@ -33,16 +33,25 @@ class PlainClick_ extends React.PureComponent {
       props.nodeType = buttonType
     }
     props.role = props.role || 'button'
+    props.radar = radar
+
+    if (state !== void 0) {
+      props.state = state
+    }
 
     return React.createElement(nodeType, props)
   }
 }
 
+export default function RadarClick ({query, connect, parallel, ...props}) {
+  <Updater run={props.query} connect={connect} parallel={parallel}>
+    {(state, radar) => {
+      if (radar === void 0) {
+        radar = state
+        state = void 0
+      }
 
-export function PlainClick (props) {
-  // composeAction takes a function, hence this wrapper
-  return React.createElement(PlainClick_, props)
+      return <Click state={state} radar={radar} {...props}/>
+    }}
+  </Updater>
 }
-
-
-export default composeAction('ActionClick', PlainClick)
