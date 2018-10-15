@@ -1,96 +1,109 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import {Formik} from 'formik'
 import {callIfExists} from '@render-props/utils'
-import objectFromForm from 'object-from-form'
-import emptyObj from 'empty/object'
 import {Updater} from 'react-radar'
-
-
-export class Form extends React.Component {
-  static propTypes = {
-    initialData: PropTypes.object,
-    confirm: PropTypes.func
-  }
-
-  form = null
-  setRef = e => this.form = e
-
-  getFormData = () => {
-    const initialData = this.props.initialData || emptyObj
-    return Object.assign({}, initialData, objectFromForm(this.form))
-  }
-
-  getQueries = () => {
-    let {confirm, query} = this.props
-    const formData = this.getFormData()
-
-    if (confirm && confirm(formData) === false) {
-      return []
-    }
-
-    return query(formData)
-  }
-
-  render () {
-    return this.props.children({
-      formRef: this.setRef,
-      run: this.getQueries(),
-      getFormData: this.getFormData
-    })
-  }
-}
 
 
 export default function RadarForm ({
   // updater
-  query,  // function
+  query,
   connect,
-  parallel,
-  // query
+  // form state
   confirm,
-  initialData,
+  initialValues,
+  enableReinitialize,
   // status changes
   onLoading,
   onError,
   onDone,
+  onSubmit,
+  onReset,
+  // validation
+  validate,
+  validateOnBlur,
+  validateOnChange,
+  validationSchema,
   // child
   children
 }) {
   let prevStatus
+  let updating = false
 
   return (
-    <Form confirm={confirm} query={query} initialData={initialData}>
-      {function ({run, getFormData, formRef}) {
-        return Updater({
-          run,
-          connect,
-          parallel,
-          children: (state, radar) => {
+    <Formik
+      onReset={onReset}
+      onSubmit={onSubmit || (() => {})}
+      initialValues={initialValues}
+      enableReinitialize={enableReinitialize}
+      validate={validate}
+      validateOnBlur={validateOnBlur}
+      validateOnChange={validateOnBlur}
+      validationSchema={validationSchema}
+    >
+      {({
+        resetForm,
+        isSubmitting,
+        isValid,
+        setSubmitting,
+        handleSubmit,
+        values,
+        errors
+      }) => (
+        <Updater run={query(values)} connect={connect}>
+          {function updaterChildren (state, radar) {
             if (radar === void 0) {
               radar = state
               state = void 0
             }
 
-            if (radar.status !== prevStatus) {
-              prevStatus = radar.status
-
-              switch (radar.status) {
-                case Updater.LOADING:
-                  callIfExists(onLoading, radar)
-                  break;
-                case Updater.DONE:
-                  callIfExists(onDone, state, radar)
-                  break;
-                case Updater.ERROR:
-                  callIfExists(onError, radar)
-                  break;
-              }
+            if (isSubmitting === true && isValid === true && updating === false) {
+              radar.update()
+              updating = true
             }
 
-            return props.children({getFormData, formRef, state, radar})
-          }
-        })
-      }}
-    </Form>
+            switch (radar.status) {
+              case Updater.LOADING:
+                if (radar.status !== prevStatus) {
+                  callIfExists(onLoading, radar)
+                }
+                break
+              case Updater.DONE:
+                if (radar.status !== prevStatus) {
+                  callIfExists(onDone, state, radar)
+                  setSubmitting(false)
+                  updating = false
+                }
+                break
+              case Updater.ERROR:
+                if (radar.status !== prevStatus) {
+                  callIfExists(onError, radar)
+                  setSubmitting(false)
+                  updating = false
+                }
+                break
+            }
+
+            prevStatus = radar.status
+
+            function submit (e) {
+              e.preventDefault()
+              handleSubmit(e)
+            }
+
+            return children(
+              {
+                values,
+                errors,
+                isValid,
+                submit,
+                reset: resetForm
+              },
+              radar
+            )
+          }}
+        </Updater>
+      )}
+    </Formik>
   )
 }

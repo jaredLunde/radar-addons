@@ -25,7 +25,7 @@ class Click extends React.PureComponent {
       callIfExists(onClick, e)
 
       if (!confirm || confirm() === true) {
-        radar.commit()
+        radar.update()
       }
     }
 
