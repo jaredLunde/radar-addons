@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import {Updater} from 'react-radar'
 import {callIfExists} from '@render-props/utils'
 

@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import {Formik} from 'formik'
 import {callIfExists} from '@render-props/utils'
 import {Updater} from 'react-radar'
@@ -93,6 +92,7 @@ export default function RadarForm ({
 
             return children(
               {
+                state,
                 values,
                 errors,
                 isValid,
