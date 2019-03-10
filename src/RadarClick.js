@@ -3,23 +3,20 @@ import {Updater} from 'react-radar'
 import {callIfExists} from '@render-props/utils'
 
 
-class Click extends React.PureComponent {
-  static displayName = 'Click'
-
-  render () {
-    const {
-      // action
-      state,
-      radar,
-      confirm,
-      // props
-      nodeType = 'button',
-      childNodeType,
-      onClick,
-      // Button props
-      ...props
-    } = this.props
-
+const Click = React.memo(
+  ({
+    // action
+    state,
+    radar,
+    confirm,
+    // props
+    as = 'button',
+    childAs,
+    onClick,
+    innerRef,
+    // Button props
+    ...props
+  }) => {
     props.onClick = e => {
       callIfExists(onClick, e)
 
@@ -28,9 +25,10 @@ class Click extends React.PureComponent {
       }
     }
 
-    if (childNodeType) {
-      props.nodeType = buttonType
+    if (childAs) {
+      props.as = childAs
     }
+
     props.role = props.role || 'button'
     props.radar = radar
 
@@ -38,19 +36,22 @@ class Click extends React.PureComponent {
       props.state = state
     }
 
-    return React.createElement(nodeType, props)
+    props.ref = innerRef
+    return React.createElement(as, props)
   }
-}
+)
 
-export default function RadarClick ({query, connect, parallel, ...props}) {
-  <Updater run={props.query} connect={connect} parallel={parallel}>
-    {(state, radar) => {
-      if (radar === void 0) {
-        radar = state
-        state = void 0
-      }
+export default React.forwardRef(
+  ({query, connect, parallel, ...props}, innerRef) => (
+    <Updater run={query} connect={connect} parallel={parallel}>
+      {(state, radar) => {
+        if (radar === void 0) {
+          radar = state
+          state = void 0
+        }
 
-      return <Click state={state} radar={radar} {...props}/>
-    }}
-  </Updater>
-}
+        return <Click state={state} radar={radar} innerRef={innerRef} {...props}/>
+      }}
+    </Updater>
+  )
+)

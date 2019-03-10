@@ -1,5 +1,4 @@
-.remote-sync.json
 .DS_Store
-.DS_STORE
-yarn-error.log
+*.log
 .babelrc
+.idea

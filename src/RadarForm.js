@@ -26,13 +26,17 @@ export default function RadarForm ({
   // child
   children
 }) {
-  let prevStatus
-  let updating = false
+  let prevStatus, radarUpdater
 
   return (
     <Formik
       onReset={onReset}
-      onSubmit={onSubmit || (() => {})}
+      onSubmit={(...args) => {
+        if (typeof confirm !== 'function' || confirm(...args)) {
+          radarUpdater.update()
+          callIfExists(onSubmit, ...args)
+        }
+      }}
       initialValues={initialValues}
       enableReinitialize={enableReinitialize}
       validate={validate}
@@ -50,16 +54,13 @@ export default function RadarForm ({
         errors
       }) => (
         <Updater run={query(values)} connect={connect}>
-          {function updaterChildren (state, radar) {
+          {(state, radar) => {
             if (radar === void 0) {
               radar = state
               state = void 0
             }
 
-            if (isSubmitting === true && isValid === true && updating === false) {
-              radar.update()
-              updating = true
-            }
+            radarUpdater = radar
 
             switch (radar.status) {
               case Updater.LOADING:
@@ -71,16 +72,18 @@ export default function RadarForm ({
                 if (radar.status !== prevStatus) {
                   callIfExists(onDone, state, radar)
                   setSubmitting(false)
-                  updating = false
                 }
                 break
               case Updater.ERROR:
                 if (radar.status !== prevStatus) {
                   callIfExists(onError, radar)
                   setSubmitting(false)
-                  updating = false
                 }
                 break
+              case Updater.WAITING:
+                if (isSubmitting === true) {
+                  setSubmitting(false)
+                }
             }
 
             prevStatus = radar.status
