@@ -41,7 +41,7 @@ const Click = React.memo(
   }
 )
 
-export default React.forwardRef(
+const RadarClick = React.forwardRef(
   ({query, connect, parallel, ...props}, innerRef) => (
     <Updater run={query} connect={connect} parallel={parallel}>
       {(state, radar) => {
@@ -55,3 +55,10 @@ export default React.forwardRef(
     </Updater>
   )
 )
+
+export default RadarClick
+
+RadarClick.WAITING = Updater.WAITING
+RadarClick.LOADING = Updater.LOADING
+RadarClick.DONE = Updater.DONE
+RadarClick.ERROR = Updater.ERROR

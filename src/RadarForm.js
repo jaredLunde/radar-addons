@@ -4,37 +4,41 @@ import {callIfExists} from '@render-props/utils'
 import {Updater} from 'react-radar'
 
 
-export default function RadarForm ({
-  // updater
-  query,
-  connect,
-  // form state
-  confirm,
-  initialValues,
-  enableReinitialize,
-  // status changes
-  onLoading,
-  onError,
-  onDone,
-  onSubmit,
-  onReset,
-  // validation
-  validate,
-  validateOnBlur,
-  validateOnChange,
-  validationSchema,
-  // child
-  children
-}) {
+const RadarForm = (
+  {
+    // updater
+    query,
+    connect,
+    // form state
+    confirm,
+    initialValues,
+    enableReinitialize,
+    // status changes
+    onLoading,
+    onError,
+    onDone,
+    onSubmit,
+    onReset,
+    // validation
+    validate,
+    validateOnBlur,
+    validateOnChange,
+    validationSchema,
+    // child
+    children
+  }
+) => {
   let prevStatus, radarUpdater
 
   return (
     <Formik
       onReset={onReset}
-      onSubmit={(...args) => {
-        if (typeof confirm !== 'function' || confirm(...args)) {
-          radarUpdater.update()
-          callIfExists(onSubmit, ...args)
+      onSubmit={(values, actions) => {
+        actions.setSubmitting(true)
+
+        if (typeof confirm !== 'function' || confirm(values, actions)) {
+          radarUpdater.update().then(() => actions.setSubmitting(false))
+          callIfExists(onSubmit, values,actions)
         }
       }}
       initialValues={initialValues}
@@ -44,15 +48,7 @@ export default function RadarForm ({
       validateOnChange={validateOnBlur}
       validationSchema={validationSchema}
     >
-      {({
-        resetForm,
-        isSubmitting,
-        isValid,
-        setSubmitting,
-        handleSubmit,
-        values,
-        errors
-      }) => (
+      {({resetForm, isSubmitting, isValid, handleSubmit, values, errors }) => (
         <Updater run={query(values)} connect={connect}>
           {(state, radar) => {
             if (radar === void 0) {
@@ -71,19 +67,13 @@ export default function RadarForm ({
               case Updater.DONE:
                 if (radar.status !== prevStatus) {
                   callIfExists(onDone, state, radar)
-                  setSubmitting(false)
                 }
                 break
               case Updater.ERROR:
                 if (radar.status !== prevStatus) {
                   callIfExists(onError, radar)
-                  setSubmitting(false)
                 }
                 break
-              case Updater.WAITING:
-                if (isSubmitting === true) {
-                  setSubmitting(false)
-                }
             }
 
             prevStatus = radar.status
@@ -110,3 +100,10 @@ export default function RadarForm ({
     </Formik>
   )
 }
+
+export default RadarForm
+
+RadarForm.WAITING = Updater.WAITING
+RadarForm.LOADING = Updater.LOADING
+RadarForm.DONE = Updater.DONE
+RadarForm.ERROR = Updater.ERROR
