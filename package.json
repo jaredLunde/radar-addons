@@ -1,6 +1,6 @@
 {
   "name": "@jaredlunde/radar-addons",
-  "version": "2.0.0-beta.10",
+  "version": "2.0.0-beta.11",
   "description": "Extra components for react-radar",
   "main": "dist/cjs/index.js",
   "browser": "dist/es/index.js",
@@ -18,7 +18,7 @@
     "react-radar": ">= 2.0.0-beta.30"
   },
   "dependencies": {
-    "@babel/runtime": "^7.0.0",
+    "@babel/runtime": "^7.4.3",
     "@render-props/utils": "^0.2.5",
     "empty": "^0.10.1"
   },
@@ -35,6 +35,7 @@
     "build-pub": "yarn run build && yarn publish --access public",
     "edit": "atom ./",
     "prettier:es": "prettier --single-quote --no-semi --no-bracket-spacing --trailing-comma es5 --write \"dist/es/**/*.js\"",
-    "prettier:cjs": "prettier --single-quote --no-semi --no-bracket-spacing --trailing-comma es5 --write \"dist/cjs/**/*.js\""
+    "prettier:cjs": "prettier --single-quote --no-semi --no-bracket-spacing --trailing-comma es5 --write \"dist/cjs/**/*.js\"",
+    "prepublishOnly": "yarn build"
   }
 }

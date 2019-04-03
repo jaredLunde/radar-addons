@@ -30,9 +30,9 @@ const Click = React.memo(
     }
 
     props.role = props.role || 'button'
-    props.radar = radar
 
     if (state !== void 0) {
+      props.radar = radar
       props.state = state
     }
 
