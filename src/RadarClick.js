@@ -42,8 +42,8 @@ const Click = React.memo(
 )
 
 const RadarClick = React.forwardRef(
-  ({query, connect, parallel, ...props}, innerRef) => (
-    <Updater run={query} connect={connect} parallel={parallel}>
+  ({query, connect, parallel, async, ...props}, innerRef) => (
+    <Updater run={query} connect={connect} async={async} parallel={parallel}>
       {(state, radar) => {
         if (radar === void 0) {
           radar = state

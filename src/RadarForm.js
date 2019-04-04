@@ -9,15 +9,14 @@ const RadarForm = (
     // updater
     query,
     connect,
+    async,
     // form state
     confirm,
     initialValues,
     enableReinitialize,
     // status changes
-    onLoading,
-    onError,
+    onSubmit = () => {},
     onDone,
-    onSubmit,
     onReset,
     // validation
     validate,
@@ -27,79 +26,45 @@ const RadarForm = (
     // child
     children
   }
-) => {
-  let prevStatus, radarUpdater
+) => (
+  <Formik
+    onSubmit={onSubmit}
+    onReset={onReset}
+    initialValues={initialValues}
+    enableReinitialize={enableReinitialize}
+    validate={validate}
+    validateOnBlur={validateOnBlur}
+    validateOnChange={validateOnChange}
+    validationSchema={validationSchema}
+  >
+    {({resetForm, setSubmitting, isValid, handleSubmit, values, errors}) => (
+      <Updater run={query(values)} async={async} connect={connect}>
+        {(state, radar) => {
+          if (radar === void 0) {
+            radar = state
+            state = void 0
+          }
 
-  return (
-    <Formik
-      onReset={onReset}
-      onSubmit={(values, actions) => {
-        actions.setSubmitting(true)
+          function submit (e) {
+            e.preventDefault()
 
-        if (typeof confirm !== 'function' || confirm(values, actions)) {
-          radarUpdater.update().then(() => actions.setSubmitting(false))
-          callIfExists(onSubmit, values,actions)
-        }
-      }}
-      initialValues={initialValues}
-      enableReinitialize={enableReinitialize}
-      validate={validate}
-      validateOnBlur={validateOnBlur}
-      validateOnChange={validateOnBlur}
-      validationSchema={validationSchema}
-    >
-      {({resetForm, isSubmitting, isValid, handleSubmit, values, errors }) => (
-        <Updater run={query(values)} connect={connect}>
-          {(state, radar) => {
-            if (radar === void 0) {
-              radar = state
-              state = void 0
-            }
-
-            radarUpdater = radar
-
-            switch (radar.status) {
-              case Updater.LOADING:
-                if (radar.status !== prevStatus) {
-                  callIfExists(onLoading, radar)
-                }
-                break
-              case Updater.DONE:
-                if (radar.status !== prevStatus) {
-                  callIfExists(onDone, state, radar)
-                }
-                break
-              case Updater.ERROR:
-                if (radar.status !== prevStatus) {
-                  callIfExists(onError, radar)
-                }
-                break
-            }
-
-            prevStatus = radar.status
-
-            function submit (e) {
-              e.preventDefault()
+            if (typeof confirm !== 'function' || confirm(values)) {
+              setSubmitting(true)
               handleSubmit(e)
+              radar.update().then(() => {
+                setSubmitting(false)
+                callIfExists(onDone, radar)
+              })
+              callIfExists(onSubmit, values)
             }
+          }
 
-            return children(
-              {
-                state,
-                values,
-                errors,
-                isValid,
-                submit,
-                reset: resetForm
-              },
-              radar
-            )
-          }}
-        </Updater>
-      )}
-    </Formik>
-  )
-}
+          return children({state, values, errors, isValid, submit, reset: resetForm}, radar)
+        }}
+      </Updater>
+    )}
+  </Formik>
+)
 
 export default RadarForm
 
