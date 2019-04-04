@@ -24,8 +24,8 @@ const RadarForm = (
     validateOnChange,
     validationSchema,
     // child
-    children
-  }
+    children,
+  },
 ) => (
   <Formik
     onSubmit={onSubmit}
@@ -37,32 +37,35 @@ const RadarForm = (
     validateOnChange={validateOnChange}
     validationSchema={validationSchema}
   >
-    {({resetForm, setSubmitting, isValid, handleSubmit, values, errors}) => (
-      <Updater run={query(values)} async={async} connect={connect}>
-        {(state, radar) => {
-          if (radar === void 0) {
-            radar = state
-            state = void 0
-          }
-
-          function submit (e) {
-            e.preventDefault()
-
-            if (typeof confirm !== 'function' || confirm(values)) {
-              setSubmitting(true)
-              handleSubmit(e)
-              radar.update().then(() => {
-                setSubmitting(false)
-                callIfExists(onDone, radar)
-              })
-              callIfExists(onSubmit, values)
+    {formikBag => {
+      const {resetForm, setSubmitting, isValid, handleSubmit, values, errors} = formikBag
+      return (
+        <Updater run={query(values)} async={async} connect={connect}>
+          {(state, radar) => {
+            if (radar === void 0) {
+              radar = state
+              state = void 0
             }
-          }
 
-          return children({state, values, errors, isValid, submit, reset: resetForm}, radar)
-        }}
-      </Updater>
-    )}
+            const submit = e => {
+              e.preventDefault()
+
+              if (typeof confirm !== 'function' || confirm(values, formikBag)) {
+                setSubmitting(true)
+                handleSubmit(e)
+                radar.update().then(() => {
+                  setSubmitting(false)
+                  callIfExists(onDone, formikBag, radar)
+                })
+                callIfExists(onSubmit, values, formikBag)
+              }
+            }
+
+            return children({state, values, errors, isValid, submit, reset: resetForm}, radar)
+          }}
+        </Updater>
+      )
+    }}
   </Formik>
 )
 
