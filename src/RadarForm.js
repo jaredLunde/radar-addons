@@ -1,77 +1,34 @@
 import React from 'react'
 import {Formik} from 'formik'
-import {callIfExists} from '@render-props/utils'
-import {Updater} from 'react-radar'
+import {useRadar} from 'react-radar'
 
 
-const RadarForm = (
-  {
-    // updater
-    query,
-    connect,
-    async,
-    // form state
-    confirm,
-    initialValues,
-    enableReinitialize,
-    // status changes
-    onSubmit = () => {},
-    onDone,
-    onReset,
-    // validation
-    validate,
-    validateOnBlur,
-    validateOnChange,
-    validationSchema,
-    // child
-    children,
-  },
-) => (
-  <Formik
-    onSubmit={onSubmit}
-    onReset={onReset}
-    initialValues={initialValues}
-    enableReinitialize={enableReinitialize}
-    validate={validate}
-    validateOnBlur={validateOnBlur}
-    validateOnChange={validateOnChange}
-    validationSchema={validationSchema}
-  >
-    {formikBag => {
-      const {resetForm, setSubmitting, isValid, handleSubmit, values, errors} = formikBag
-      return (
-        <Updater run={query(values)} async={async} connect={connect}>
-          {(state, radar) => {
-            if (radar === void 0) {
-              radar = state
-              state = void 0
-            }
+const RadarForm = ({query, async, onDone, confirm, children, ...formikProps}) => {
+  const radar = useRadar()
+  query = Array.isArray(query) ? query : [query]
 
-            const submit = e => {
-              e.preventDefault()
+  return (
+    <Formik {...formikProps}>
+      {formik => {
+        const submit =  e => {
+          e.preventDefault()
 
-              if (typeof confirm !== 'function' || confirm(values, formikBag)) {
-                setSubmitting(true)
-                handleSubmit(e)
-                radar.update().then(() => {
-                  setSubmitting(false)
-                  callIfExists(onDone, formikBag, radar)
-                })
-                callIfExists(onSubmit, values, formikBag)
-              }
-            }
+          if (typeof confirm !== 'function' || confirm(formik.values, formik)) {
+            formik.setSubmitting(true)
+            formik.handleSubmit(e)
+            return radar.commit(query.map(q => q(formik.values)), {async}).then(response => {
+              formik.setSubmitting(false)
+              typeof onDone === 'function' && onDone(formik, response)
+            })
+          }
 
-            return children({state, values, errors, isValid, submit, reset: resetForm}, radar)
-          }}
-        </Updater>
-      )
-    }}
-  </Formik>
-)
+          return Promise.resolve(false)
+        }
+
+        return children({...formik, handleSubmit: submit, submit})
+      }}
+    </Formik>
+  )
+}
 
 export default RadarForm
-
-RadarForm.WAITING = Updater.WAITING
-RadarForm.LOADING = Updater.LOADING
-RadarForm.DONE = Updater.DONE
-RadarForm.ERROR = Updater.ERROR
