@@ -3,12 +3,13 @@ import {Formik} from 'formik'
 import {useRadar} from 'react-radar'
 
 
-const RadarForm = ({query, async, onDone, confirm, children, ...formikProps}) => {
+const noop = () => {}
+const RadarForm = ({query, async, onDone, confirm, children, onSubmit = noop, ...formikProps}) => {
   const radar = useRadar()
   query = Array.isArray(query) ? query : [query]
 
   return (
-    <Formik {...formikProps}>
+    <Formik onSubmit={onSubmit} {...formikProps}>
       {formik => {
         const submit =  e => {
           e.preventDefault()
